@@ -1,0 +1,22 @@
+language: generic
+services:
+  - docker
+
+before_install:
+  - docker build -t alexius2308/react-test -f ./client/Dockerfile.dev ./client
+
+script:
+  - docker run -e CI=true alexius2308/react-test npm test
+
+after_success:
+  - docker build -t alexius2308/multi-client ./client
+  - docker build -t alexius2308/multi-nginx ./nginx
+  - docker build -t alexius2308/multi-server ./server 
+  - docker build -t alexius2308/multi-worker ./worker
+  # Log in to docker CLI
+  - echo "$DOCKER_PASSWORD" dcoker login -u "$DOCKER_ID" --password-stdin 
+  # Take those images and push them to docker hub
+  - docker push alexius2308/multi-client
+  - docker push alexius2308/multi-nginx
+  - docker push alexius2308/multi-server
+  - docker push alexius2308/multi-worker
